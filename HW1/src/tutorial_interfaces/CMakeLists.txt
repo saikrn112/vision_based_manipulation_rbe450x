@@ -13,6 +13,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
     "msg/Num.msg"
     "msg/Sphere.msg"
     "srv/AddThreeInts.srv"
+    "srv/AddTwoForces.srv"
     DEPENDENCIES geometry_msgs
     )
 # uncomment the following section in order to fill in
