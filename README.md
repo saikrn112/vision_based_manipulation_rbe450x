@@ -1,6 +1,6 @@
 ## Vision Based Manipulation RBE450x
 This course teaches 
-* basics ofmanipulation
+* basics of manipulation
 * Grasp Matrix
 * Grasp Stability
 * Image Processing basics
