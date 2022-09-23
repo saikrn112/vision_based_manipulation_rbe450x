@@ -1,0 +1,14 @@
+checkpoints 
+- [ ] first problem
+	- [ ] solve
+	- [ ] writeup
+- [ ] second problem
+	- [ ] simplification writeup
+	- [x] grasp matrix function
+	- [x] grasp matrix for randomly chosen 5th vector
+	- [x] quality metric for this randomly chosen 5th vector
+	- [ ] quality value vs edges
+		- [ ] plot
+	- [ ] quality metric 3.1.2
+	- [ ] metric 3.1.3
+		- [ ] writeup
