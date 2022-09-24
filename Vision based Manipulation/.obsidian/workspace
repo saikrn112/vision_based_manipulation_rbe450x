@@ -9,7 +9,7 @@
         "state": {
           "type": "markdown",
           "state": {
-            "file": "HW2.md",
+            "file": "HW3.md",
             "mode": "source",
             "source": false
           }
@@ -77,7 +77,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "HW2.md",
+                "file": "HW3.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -94,7 +94,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "HW2.md",
+                "file": "HW3.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -117,7 +117,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "HW2.md"
+                "file": "HW3.md"
               }
             }
           }
@@ -130,6 +130,7 @@
   },
   "active": "c283dcdb8a9deefe",
   "lastOpenFiles": [
+    "HW2.md",
     "Quiz 3.md",
     "Quiz 2.md",
     "Grasp Quality Metrics.md"

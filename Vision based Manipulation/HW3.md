@@ -1,0 +1,4 @@
+- [ ] install gazebo docker
+- [ ] somehow run gazebo from docker in ubuntu
+- [ ] finish the assignment
+- [ ] 
