@@ -24,17 +24,39 @@ class ImageSubscriber : public rclcpp::Node
 	rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr publisher_;
 	rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr subscription_;
 
-    const cv::Scalar blue_low = cv::Scalar(200,0,0);
-    const cv::Scalar blue_high = cv::Scalar(255,0,0);
+    const cv::Scalar blue_low = cv::Scalar(100,100,100);
+    const cv::Scalar blue_high = cv::Scalar(120,255,255);
 
-    const cv::Scalar green_low = cv::Scalar(0,200,0);
-    const cv::Scalar green_high = cv::Scalar(0,255,0);
+    const cv::Scalar green_low = cv::Scalar(50,100,100);
+    const cv::Scalar green_high = cv::Scalar(100,255,255);
 
-    const cv::Scalar red_low = cv::Scalar(0,0,0);
-    const cv::Scalar red_high = cv::Scalar(0,0,255);
+    const cv::Scalar red_low = cv::Scalar(0,100,100);
+    const cv::Scalar red_high = cv::Scalar(50,255,255);
 
-    const cv::Scalar pink_low = cv::Scalar(198,190,200);
-    const cv::Scalar pink_high = cv::Scalar(255,255,255);
+    const cv::Scalar pink_low = cv::Scalar(145,100,100);
+    const cv::Scalar pink_high = cv::Scalar(150,255,255);
+
+    cv::Point2f getCenterOfMask(const cv::Mat& mask) const
+    {
+        float x_i = 0;
+        float y_i = 0;
+        float count = 0;
+        for (auto i = 0; i < mask.rows; i++)
+        {
+            const double* Mi = mask.ptr<double>(i);
+            for (auto j = 0; j < mask.cols; j++)
+            {
+                if (Mi[j] > 200)
+                {
+                    x_i += i;
+                    y_i += j;
+                    count += 1;
+                }
+            }
+        }
+        
+        return {x_i/count, y_i/count};
+    }
 
   public:
 	// Constructor of the class. The class is derived from the parent class "Node" of rclcpp and
@@ -68,39 +90,41 @@ class ImageSubscriber : public rclcpp::Node
         cv::Mat pink_mask = cv::Mat::zeros(cv_ptr->image.size(),cv_ptr->image.type());
 
 
-        cv::inRange(cv_ptr->image,blue_low,blue_high,blue_mask);
-        cv::inRange(cv_ptr->image,red_low,red_high,red_mask);
-        cv::inRange(cv_ptr->image,green_low,green_high,green_mask);
-        cv::inRange(cv_ptr->image,pink_low,pink_high,pink_mask);
+        cv::Mat hsv = cv::Mat::zeros(cv_ptr->image.size(),cv_ptr->image.type());
+        cv::cvtColor(cv_ptr->image,hsv,cv::COLOR_BGR2HSV);
+        cv::inRange(hsv,blue_low,blue_high,blue_mask);
+        cv::inRange(hsv,red_low,red_high,red_mask);
+        cv::inRange(hsv,green_low,green_high,green_mask);
+        cv::inRange(hsv,pink_low,pink_high,pink_mask);
 
         cv::Mat final_mask = cv::Mat::zeros(cv_ptr->image.size(),cv_ptr->image.type());
-        //final_mask = blue_mask + red_mask + green_mask + pink_mask;
-        final_mask = red_mask;
+        final_mask = blue_mask + red_mask + green_mask + pink_mask;
+
         
-        cv::Mat gray = cv::Mat::zeros(cv_ptr->image.size(),cv_ptr->image.type());
-        cv::cvtColor(cv_ptr->image,gray,cv::COLOR_BGR2GRAY);
 
         auto cv_ret_ptr = std::make_shared<cv_bridge::CvImage>();
-        cv_ret_ptr->image = cv::Mat::zeros(gray.size(),gray.type());
+        cv_ret_ptr->image = cv::Mat::zeros(cv_ptr->image.size(),cv_ptr->image.type());
         cv_ret_ptr->header = cv_ptr->header;
-        cv_ret_ptr->encoding = sensor_msgs::image_encodings::MONO8;
+        cv_ret_ptr->encoding = cv_ptr->encoding;
 
-//        RCLCPP_INFO_STREAM(this->get_logger(), "input:" << cv_ptr->image.size() 
-//                        << " input_type:" << cv_ret_ptr->image.type()
-//                        << " ret:" << cv_ret_ptr->image.size()
-//                        << " ret_type:" << cv_ret_ptr->image.type()
-//                        << " mask:" << final_mask.size());
-        
-        RCLCPP_INFO_STREAM(this->get_logger(), "mat:" << cv_ptr->image);
-        exit(0);
+        auto red_mask_center = getCenterOfMask(red_mask);
+        auto blue_mask_center = getCenterOfMask(blue_mask);
+        auto green_mask_center = getCenterOfMask(green_mask);
+        auto pink_mask_center = getCenterOfMask(pink_mask);
+
+        RCLCPP_INFO_STREAM(this->get_logger(),"red:" << red_mask_center
+                << " blue:" << blue_mask_center
+                << " green:" << green_mask_center
+                << " pink:" << pink_mask_center
+            );
 
 
-        //cv::bitwise_not(gray,final_mask,cv_ret_ptr->image);
+        cv::bitwise_and(cv_ptr->image,cv_ptr->image,cv_ret_ptr->image,final_mask);
         cv_ret_ptr->image = red_mask;
+        cv_ret_ptr->encoding = sensor_msgs::image_encodings::MONO8;
 
 
 		// converting opencv data type to ROS message type
-   		//auto msg_to_send = cv_ptr->toImageMsg();
    		auto msg_to_send = cv_ret_ptr->toImageMsg();
 
 		// publishing the image.
