@@ -2,5 +2,8 @@
 */install/*
 */build/*
 .DS_Store
+log
+build
+install
 *.swp
 *.zcompdump
