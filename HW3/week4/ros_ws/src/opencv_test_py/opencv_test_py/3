@@ -12,7 +12,6 @@ from sensor_msgs.msg import Image # Image is the message type
 from cv_bridge import CvBridge # Package to convert between ROS and OpenCV Images
 import cv2 # OpenCV library
 import numpy as np
-from skimage.feature import peak_local_max
 
 def get_center_of_mask( mask):
     x_i = 0;
@@ -95,7 +94,7 @@ class ImageSubscriber(Node):
     pink_mask = cv2.inRange(hsv,pink_low,pink_high)
 
     final_mask = blue_mask + red_mask + green_mask + pink_mask
-    #cv2.imshow("output_image", final_mask)
+    cv2.imshow("output_image", final_mask)
 
     x_blue,y_blue =  get_center_of_mask(blue_mask)
     x_green,y_green =  get_center_of_mask(green_mask)
@@ -110,15 +109,12 @@ class ImageSubscriber(Node):
     # pink:(288.0802088277171, 510.936877076412)
     # red:(371.3253638253638, 427.65696465696465)
 
-    masked_img= cv2.bitwise_and(current_frame, current_frame, mask=final_mask)
-    cv2.imshow("mask",final_mask)
-
     # get gray scale image
-    gray = cv2.cvtColor(current_frame, cv2.COLOR_BGR2GRAY)
+    gray = cv2.cvtColor(current_fram, cv2.COLOR_BGR2GRAY)
 
     ## Canny Edge detection
     canny = cv2.Canny(gray,200,300)
-    #cv2.imshow("canny", canny)
+    cv2.imshow("canny", canny)
     cv2.waitKey(1)
 
 
@@ -130,12 +126,12 @@ class ImageSubscriber(Node):
     coords = peak_local_max(img_corners,min_distance=3,threshold_abs=0.01)
 
     # draw markers in the image  
-#    for coord in coords:
-#        cv2.drawMarker(current_frame, [coord[1],coord[0]], color=[165,42,42])
+    for coord in coords:
+        cv2.drawMarker(current_frame, [coord[1],coord[0]], color=[165,42,42])
 
 
     # hough circles
-    circles = cv2.HoughCircles(gray, 
+    circles = cv2.HoughCircles(img_gray, 
                             cv2.HOUGH_GRADIENT,1,20, 
                             param1=100,
                             param2=30,
@@ -143,22 +139,15 @@ class ImageSubscriber(Node):
                             maxRadius=0)
 
     circles = np.uint16(np.around(circles))
-    img_circles = current_frame.copy()
+    img_circles = img.copy()
     for i in circles[0,:]:
         cv2.circle(img_circles,(i[0],i[1]),i[2],(165,42,42),2)
         cv2.circle(img_circles,(i[0],i[1]),2,(165,42,42),3)
-    #blue center:(426, 288)
-    #red center:(428, 370)
-    #pink center:(508, 286)
-    #green center:(512, 370)
-
-
-    #cv2.imshow("circles",img_circles)
 
     # Publish the image.
     # The 'cv2_to_imgmsg' method converts an OpenCV
     # image to a ROS 2 image message
-    self.publisher_.publish(self.br.cv2_to_imgmsg(masked_img , encoding="bgr8"))
+    self.publisher_.publish(self.br.cv2_to_imgmsg(current_frame, encoding="bgr8"))
 
     
   
