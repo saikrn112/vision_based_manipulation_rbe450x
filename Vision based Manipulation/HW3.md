@@ -1,16 +1,17 @@
 - [x] install gazebo docker
 - [x] somehow run gazebo from docker in ubuntu
 - [ ] finish the assignment
+	- [ ] cross check if all deliverables are met
 - [ ] worry about permissions via docker issue later 
-- [ ] finish the plate view 
-	- [ ] its already aligned with the image, so I dont have to move the robot right? 
-	- [ ] download image_view package to view the images
-	- [ ] screenshot of object and robot And image_view output
-- [ ] download opencv package they gave
-	- [ ] subscribe and publish the images from simulator using image_view
-- [ ] center of each circle by averaging the pixels
-- [ ] edge detection algo 
-- [ ] harris corner
-	- [ ] screenshot of edge image
-- [ ] hough circles algo to detect circles and their centers
-	- [ ] detected circles and resulting edge image 
+- [x] finish the plate view 
+	- [x] its already aligned with the image, so I dont have to move the robot right? 
+	- [x] download image_view package to view the images
+	- [x] screenshot of object and robot And image_view output
+- [x] download opencv package they gave
+	- [x] subscribe and publish the images from simulator using image_view
+- [x] center of each circle by averaging the pixels
+- [x] edge detection algo 
+- [x] harris corner
+	- [x] screenshot of edge image
+- [x] hough circles algo to detect circles and their centers
+	- [x] detected circles and resulting edge image 
