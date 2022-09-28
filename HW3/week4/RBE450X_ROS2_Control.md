@@ -59,7 +59,7 @@ Now if you do ros2 topic list, you will be able to see a bunch of different topi
 
 open a new terminal and run 
 ```
-run ros2 rviz2 rviz2
+ros2 run rviz2 rviz2
 ```
 A new window with Rviz should open up, first set the 'Fixes Frame' to *world*, and then click on 'Add', Select 'By Topic', and then select 'image'. You will be able to see a small dialog box on left hand side with the current feed of camera.
 

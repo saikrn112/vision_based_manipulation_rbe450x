@@ -55,7 +55,12 @@ class ImageSubscriber : public rclcpp::Node
             }
         }
         
-        return {x_i/count, y_i/count};
+        //RCLCPP_INFO_STREAM(this->get_logger(),"mat:" << mask.type());
+        if (count != 0)
+        {
+            return {x_i/count,y_i/count};
+        }
+        return {x_i, y_i};
     }
 
   public:
@@ -97,6 +102,8 @@ class ImageSubscriber : public rclcpp::Node
         cv::inRange(hsv,green_low,green_high,green_mask);
         cv::inRange(hsv,pink_low,pink_high,pink_mask);
 
+        cv::normalize(pink_mask,pink_mask,0,255,cv::NORM_MINMAX);
+
         cv::Mat final_mask = cv::Mat::zeros(cv_ptr->image.size(),cv_ptr->image.type());
         final_mask = blue_mask + red_mask + green_mask + pink_mask;
 
@@ -108,19 +115,24 @@ class ImageSubscriber : public rclcpp::Node
         cv_ret_ptr->encoding = cv_ptr->encoding;
 
         auto red_mask_center = getCenterOfMask(red_mask);
+        // red_center - red:[172732, 95466] count:217
+        // red_center - (796.0,439.93)
+        // blue:[796, 468.35] green:[796, 441.5]
         auto blue_mask_center = getCenterOfMask(blue_mask);
         auto green_mask_center = getCenterOfMask(green_mask);
         auto pink_mask_center = getCenterOfMask(pink_mask);
 
-        RCLCPP_INFO_STREAM(this->get_logger(),"red:" << red_mask_center
-                << " blue:" << blue_mask_center
-                << " green:" << green_mask_center
-                << " pink:" << pink_mask_center
-            );
+            RCLCPP_INFO_STREAM(this->get_logger(), "centers:"
+                    << " red:" << red_mask_center
+                    << " blue:" << blue_mask_center
+                    << " green:" << green_mask_center
+                    << " pink:" << pink_mask_center
+                );
+
 
 
         cv::bitwise_and(cv_ptr->image,cv_ptr->image,cv_ret_ptr->image,final_mask);
-        cv_ret_ptr->image = red_mask;
+        cv_ret_ptr->image = pink_mask;
         cv_ret_ptr->encoding = sensor_msgs::image_encodings::MONO8;
 
 
