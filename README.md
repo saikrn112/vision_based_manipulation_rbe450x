@@ -5,7 +5,7 @@ This course teaches
 * Grasp Stability
 * Image Processing basics
 * Visual Servoing
-* * Image Jacboian
+  * Image Jacboian
 ---
 
 This repository contains obsidian notes, reference pdfs, and tutorials
