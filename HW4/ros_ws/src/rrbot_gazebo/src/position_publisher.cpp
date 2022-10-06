@@ -27,8 +27,10 @@ class MinimalPublisher : public rclcpp::Node
     void timer_callback()
     {
       auto message = std_msgs::msg::Float64MultiArray();
-      message.data.push_back(1);
-      message.data.push_back(0.5);
+      //message.data.push_back(1.3);
+      //message.data.push_back(-2.1);
+      message.data.push_back(-0.2);
+      message.data.push_back(-0.3);
     //   RCLCPP_INFO(this->get_logger(), "Publishing: '%s'", message.data.c_str());
       publisher_->publish(message);
     }

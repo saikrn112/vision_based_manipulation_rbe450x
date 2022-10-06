@@ -102,7 +102,7 @@ class VisualServoController(Node):
         # pink:(288.0802088277171, 510.936877076412)
         # red:(371.3253638253638, 427.65696465696465)
 
-    def get_transforms_T_and_R(self, to_frame_rel, from_frame_rel):
+    def get_transforms_R_and_T(self, to_frame_rel, from_frame_rel):
         """
         input:
             to_frame_rel - to which transformation has to be calculated
@@ -140,14 +140,16 @@ class VisualServoController(Node):
         output:
             RR Bot Jacobian - 6 x 2
         """
-        is_transform1, R_link1_to_cam, T_link1_to_cam = get_transforms_R_and_T("link1","camera_link")
-        is_transform2, R_link1_to_link2, T_link1_to_link2 = get_transforms_R_and_T("link1","link2")
+        is_transform1, R_link1_to_cam, T_link1_to_cam = self.get_transforms_R_and_T("link1","camera_link")
+        is_transform2, R_link1_to_link2, T_link1_to_link2 = self.get_transforms_R_and_T("link1","link2")
+        if not is_transform1 or not is_transform2:
+            return None
         z_local = np.array([0,0,1]) # 3,
         z_local = skew(z_local) # 3 x 3
         J11 = np.eye(3) @ z_local @ T_link1_to_cam # 3 x 1
-        J12 = R_link1_to_link2 @ z_local @ (T_link1_to_cam - T_link1_to_link2) # 3 x 1
+        J12 = R_link1_to_link2[0:3,0:3] @ z_local @ (T_link1_to_cam - T_link1_to_link2) # 3 x 1
         J21 = np.eye(3) @ z_local # 3 x 1
-        J22 = R_link1_to_link2 @ z_local # 3 x 1
+        J22 = R_link1_to_link2[0:3,0:3] @ z_local # 3 x 1
         J1  = np.hstack((J11,J12)) # 3 x 2
         J2  = np.hstack((J21,J22)) # 3 x 2
         J   = np.vstack((J1,J2)) # 6 x 2
@@ -168,20 +170,20 @@ class VisualServoController(Node):
         
         # calculate error in feature points
         error = feats_curr - feats_ref # 4 x 2
-        error = -lmbda*error # TODO confirm these equations
+        error = lmbda*error # TODO confirm these equations
         error = error.reshape((8,1))
+        print(f"error:{error.flatten()}")
 
         # calculate required camera velocities in camera frame
         v_cam = L_e_inv @ error # 2 x 1
 
         # calculate required camera velocities in joint1 frame
-        is_transform,R,T = get_transforms_R_and_T("link1","camera_link")
-
+        is_transform,R,T = self.get_transforms_R_and_T("link1","camera_link")
         if not is_transform:
-            return
+            return None
 
         v_link1 = R[0:2,0:2] @ v_cam # 2 x 1
-        Jaco = get_rrbot_jacobian() # 6 x 2
+        Jaco = self.get_rrbot_jacobian() # 6 x 2
         Jaco_inv = np.linalg.pinv(Jaco) # 2 x 6
         joint_vel = Jaco_inv[0:2,0:2] @ v_link1 # 2 x 1
         return joint_vel
@@ -192,24 +194,27 @@ class VisualServoController(Node):
         current_frame = self.br.imgmsg_to_cv2(data)
         
         # get current feature locations
-        feats_curr,final_mask = calculate_image_feature_centers(current_frame)
+        feats_curr,final_mask = self.calculate_image_feature_centers(current_frame)
 
-        x_ref_blue,y_ref_blue=(426, 288)
-        x_ref_red,y_ref_red=(428, 370)
-        x_ref_pink,y_ref_pink=(508, 286)
-        x_ref_green,y_ref_green=(512, 370)
+        x_ref_blue,y_ref_blue=(288,427)
+        x_ref_green,y_ref_green=(371,511)
+        x_ref_pink,y_ref_pink=(288,510)
+        x_ref_red,y_ref_red=(371,428)
 
         feats_ref = np.array([[x_ref_blue,y_ref_blue],
                                 [x_ref_green,y_ref_green],
                                 [x_ref_pink,y_ref_pink],
                                 [x_ref_red,y_ref_red]],dtype=np.float32)
 
+        print(f"features:{feats_curr.flatten()}")
         # get the required joint velocities
-        joint_velocities = calculate_required_joint_velocities(feats_ref,feats_curr)
+        joint_velocities = self.calculate_required_joint_velocities(feats_ref,feats_curr)
+        if joint_velocities is None:
+            return
 
         # format and publish the velocities
-        velocities = Flat64MultiArray()
-        velocities.data = [joint_velocities[0],joint_velocities[1]]
+        velocities = Float64MultiArray()
+        velocities.data = [joint_velocities[0,0],joint_velocities[1,0]]
         self.velocity_publisher_.publish(velocities)
 
         # extract and publish the masked output
