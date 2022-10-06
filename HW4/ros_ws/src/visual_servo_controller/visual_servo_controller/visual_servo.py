@@ -184,6 +184,8 @@ class VisualServoController(Node):
 
         v_link1 = R[0:2,0:2] @ v_cam # 2 x 1
         Jaco = self.get_rrbot_jacobian() # 6 x 2
+        if Jaco is None:
+            return None
         Jaco_inv = np.linalg.pinv(Jaco) # 2 x 6
         joint_vel = Jaco_inv[0:2,0:2] @ v_link1 # 2 x 1
         return joint_vel
@@ -195,6 +197,7 @@ class VisualServoController(Node):
         
         # get current feature locations
         feats_curr,final_mask = self.calculate_image_feature_centers(current_frame)
+        print(f"features:{feats_curr.flatten()}")
 
         x_ref_blue,y_ref_blue=(288,427)
         x_ref_green,y_ref_green=(371,511)
@@ -206,7 +209,6 @@ class VisualServoController(Node):
                                 [x_ref_pink,y_ref_pink],
                                 [x_ref_red,y_ref_red]],dtype=np.float32)
 
-        print(f"features:{feats_curr.flatten()}")
         # get the required joint velocities
         joint_velocities = self.calculate_required_joint_velocities(feats_ref,feats_curr)
         if joint_velocities is None:
