@@ -95,6 +95,7 @@ class VisualServoController(Node):
                                 [x_green,y_green],
                                 [x_pink,y_pink],
                                 [x_red,y_red]],dtype=np.float32)
+
         return feats_curr,final_mask
 
         # print(f"blue:{x_blue,y_blue}")
@@ -225,12 +226,25 @@ class VisualServoController(Node):
         # format and publish the velocities
         velocities = Float64MultiArray()
         velocities.data = [joint_velocities[0,0],joint_velocities[1,0]]
-        self.velocity_publisher_.publish(velocities)
+        #self.velocity_publisher_.publish(velocities)
 
         # extract and publish the masked output
         masked_img= cv2.bitwise_and(current_frame, current_frame, mask=final_mask)
 
-        self.publisher_.publish(self.br.cv2_to_imgmsg(masked_img , encoding="bgr8"))
+        #self.publisher_.publish(self.br.cv2_to_imgmsg(masked_img , encoding="bgr8"))
+        gray = cv2.cvtColor(current_frame, cv2.COLOR_BGR2GRAY)
+        circles = cv2.HoughCircles(gray, 
+                                cv2.HOUGH_GRADIENT,1,20, 
+                                param1=100,
+                                param2=30,
+                                minRadius=0,
+                                maxRadius=0)
+
+        circles = np.uint16(np.around(circles))
+        for i in circles[0,:]:
+            cv2.circle(current_frame,(i[0],i[1]),i[2],(165,42,42),2)
+            cv2.circle(current_frame,(i[0],i[1]),2,(165,42,42),3)
+        self.publisher_.publish(self.br.cv2_to_imgmsg(current_frame, encoding="bgr8"))
     
 def main(args=None):
   
