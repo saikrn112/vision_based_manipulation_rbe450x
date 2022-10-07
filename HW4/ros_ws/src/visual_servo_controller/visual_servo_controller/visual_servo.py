@@ -13,6 +13,10 @@ from tf_transformations import quaternion_matrix
  
 # Handle float64 arrays
 from std_msgs.msg import Float64MultiArray 
+
+# CSV handling
+import csv
+
 def skew(x):
     return np.array([[0, -x[2], x[1]],
                      [x[2], 0, -x[0]],
@@ -213,6 +217,10 @@ class VisualServoController(Node):
         joint_velocities = self.calculate_required_joint_velocities(feats_ref,feats_curr)
         if joint_velocities is None:
             return
+
+        with open('/root/vbm/data.csv','a') as dataFile:
+            writer = csv.writer(dataFile,delimiter=',')
+            writer.writerow(feats_curr.flatten())
 
         # format and publish the velocities
         velocities = Float64MultiArray()
