@@ -226,7 +226,7 @@ class VisualServoController(Node):
         # format and publish the velocities
         velocities = Float64MultiArray()
         velocities.data = [joint_velocities[0,0],joint_velocities[1,0]]
-        #self.velocity_publisher_.publish(velocities)
+        self.velocity_publisher_.publish(velocities)
 
         # extract and publish the masked output
         masked_img= cv2.bitwise_and(current_frame, current_frame, mask=final_mask)
